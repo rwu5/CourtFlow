@@ -1,0 +1,80 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": { "navigationStyle": "custom", "disableScroll": true }
+    },
+    {
+      "path": "pages/login/index",
+      "style": { "navigationStyle": "custom", "disableScroll": true }
+    },
+    {
+      "path": "pages/courts/index",
+      "style": { "navigationStyle": "custom", "disableScroll": false }
+    },
+    {
+      "path": "pages/courses/index",
+      "style": { "navigationStyle": "custom", "disableScroll": false }
+    },
+    {
+      "path": "pages/my/index",
+      "style": { "navigationStyle": "custom", "disableScroll": false }
+    }
+  ],
+  "subPackages": [
+    {
+      "root": "packages/venue",
+      "pages": [
+        { "path": "list/index", "style": { "navigationStyle": "custom" } },
+        {
+          "path": "detail/index",
+          "style": { "navigationStyle": "custom", "disableScroll": true }
+        },
+        {
+          "path": "booking/index",
+          "style": { "navigationStyle": "custom", "disableScroll": true }
+        }
+      ]
+    },
+    {
+      "root": "packages/booking",
+      "pages": [
+        { "path": "order/index", "style": { "navigationStyle": "custom" } },
+        { "path": "result/index", "style": { "navigationStyle": "custom" } }
+      ]
+    },
+    {
+      "root": "packages/account",
+      "pages": [
+        { "path": "orders/index", "style": { "navigationStyle": "custom" } },
+        { "path": "profile/index", "style": { "navigationStyle": "custom" } }
+      ]
+    },
+    {
+      "root": "packages/coach",
+      "pages": [
+        { "path": "profile/index", "style": { "navigationStyle": "custom" } }
+      ]
+    }
+  ],
+  "tabBar": {
+    "custom": true,
+    "color": "#4a6655",
+    "selectedColor": "#B8D430",
+    "backgroundColor": "#080e0b",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "主页" },
+      { "pagePath": "pages/courts/index", "text": "场地" },
+      { "pagePath": "pages/courses/index", "text": "课程" },
+      { "pagePath": "pages/my/index", "text": "我的" }
+    ]
+  },
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "RallyAI",
+    "navigationBarBackgroundColor": "#0e1712",
+    "backgroundColor": "#080e0b",
+    "backgroundTextStyle": "dark"
+  }
+}

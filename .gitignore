@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.env.*
+*.env
+
+# Node
+node_modules/
+dist/
+.output/
+.cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Alembic local override
+courtflow-api/alembic.ini.local
+
+# Secrets / keys
+*.pem
+*.key
+*.p12
