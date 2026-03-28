@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx uni:*)",
+      "Bash(find /f/work/CourtFlow/courtflow-api/tests -type f -name *.py)",
+      "Bash(python -c \"from app.main import app; print\\(''OK -'', len\\(app.routes\\), ''routes''\\)\")",
+      "Bash(pip install:*)",
+      "Bash(python -c \":*)",
+      "Bash(ls F:/work/CourtFlow/courtflow-api/.env*)",
+      "Bash(ls F:/work/CourtFlow/courtflow-admin/.env*)",
+      "Bash(ls F:/work/CourtFlow/courtflow-api/docker-compose*)",
+      "Bash(.venv/Scripts/python -c \":*)",
+      "Bash(python -c \"import alembic; print\\(alembic.__version__\\)\")"
+    ]
+  }
+}

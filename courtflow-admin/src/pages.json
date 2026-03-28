@@ -1,0 +1,83 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": { "navigationStyle": "custom", "disableScroll": true }
+    },
+    {
+      "path": "pages/venues/index",
+      "style": { "navigationStyle": "custom", "disableScroll": false }
+    },
+    {
+      "path": "pages/pricing/index",
+      "style": { "navigationStyle": "custom", "disableScroll": false }
+    },
+    {
+      "path": "pages/bookings/index",
+      "style": { "navigationStyle": "custom", "disableScroll": false }
+    },
+    {
+      "path": "pages/my/index",
+      "style": { "navigationStyle": "custom", "disableScroll": false }
+    },
+    {
+      "path": "pages/login/index",
+      "style": { "navigationStyle": "custom", "disableScroll": true }
+    }
+  ],
+  "subPackages": [
+    {
+      "root": "packages/org",
+      "pages": [
+        { "path": "profile/index", "style": { "navigationStyle": "custom" } }
+      ]
+    },
+    {
+      "root": "packages/venue",
+      "pages": [
+        { "path": "detail/index", "style": { "navigationStyle": "custom" } },
+        { "path": "edit/index", "style": { "navigationStyle": "custom" } },
+        { "path": "courts/index", "style": { "navigationStyle": "custom" } },
+        { "path": "court-detail/index", "style": { "navigationStyle": "custom" } },
+        { "path": "court-edit/index", "style": { "navigationStyle": "custom" } },
+        { "path": "court-photos/index", "style": { "navigationStyle": "custom" } },
+        { "path": "photos/index", "style": { "navigationStyle": "custom" } },
+        { "path": "facilities/index", "style": { "navigationStyle": "custom" } }
+      ]
+    },
+    {
+      "root": "packages/booking",
+      "pages": [
+        { "path": "list/index", "style": { "navigationStyle": "custom" } },
+        { "path": "detail/index", "style": { "navigationStyle": "custom" } }
+      ]
+    },
+    {
+      "root": "packages/pricing",
+      "pages": [
+        { "path": "edit/index", "style": { "navigationStyle": "custom" } }
+      ]
+    },
+    {
+      "root": "packages/membership",
+      "pages": [
+        { "path": "list/index", "style": { "navigationStyle": "custom" } },
+        { "path": "edit/index", "style": { "navigationStyle": "custom" } }
+      ]
+    }
+  ],
+  "tabBar": {
+    "custom": true,
+    "list": [
+      { "pagePath": "pages/index/index", "text": "概览" },
+      { "pagePath": "pages/venues/index", "text": "场馆" },
+      { "pagePath": "pages/bookings/index", "text": "预约" },
+      { "pagePath": "pages/my/index", "text": "我的" }
+    ]
+  },
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarBackgroundColor": "#080e0b",
+    "backgroundColor": "#080e0b"
+  }
+}

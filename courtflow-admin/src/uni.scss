@@ -1,0 +1,144 @@
+// ─── CourtFlow × RallyAI Design System ──────────────────────────────────────
+// Glassmorphic Sport-AI: Deep space + neon green/blue gradient brand
+
+// ─── Brand Colors ────────────────────────────────────────────────────────────
+$cf-green:       #2D8B57;
+$cf-blue:        #2E86C1;
+$cf-lime:        #B8D430;   // neon lime — primary highlight
+$cf-violet:      #7B4FA0;   // coaches/courses accent
+$cf-orange:      #D4652A;   // warmth, CTAs
+$cf-rose:        #F47388;   // rose, errors
+$cf-blue-bright: #4284F5;   // interactive / links
+
+// ─── Backgrounds ─────────────────────────────────────────────────────────────
+$cf-bg:          #080e0b;   // near-black with green soul
+$cf-surface:     #0e1712;   // slightly lifted surface
+$cf-card:        rgba(255, 255, 255, 0.07);   // glass
+$cf-card-solid:  #131f18;   // solid fallback
+$cf-card-2:      rgba(255, 255, 255, 0.11);   // hover / elevated glass
+
+// ─── Glass ───────────────────────────────────────────────────────────────────
+$cf-glass-bg:    rgba(255, 255, 255, 0.07);
+$cf-glass-hover: rgba(255, 255, 255, 0.11);
+$cf-glass-border: rgba(255, 255, 255, 0.10);
+$cf-glass-border-2: rgba(255, 255, 255, 0.16);
+
+// ─── Text ─────────────────────────────────────────────────────────────────────
+$cf-white:       #FFFFFF;
+$cf-text-2:      rgba(255, 255, 255, 0.55);
+$cf-text-3:      rgba(255, 255, 255, 0.22);
+
+// ─── Lines ───────────────────────────────────────────────────────────────────
+$cf-line:        rgba(255, 255, 255, 0.08);
+$cf-line-2:      rgba(255, 255, 255, 0.14);
+
+// ─── Semantic ────────────────────────────────────────────────────────────────
+$cf-success:     #34d399;
+$cf-danger:      #F04545;
+$cf-amber:       #FBBF24;
+
+// ─── Glow (neon shadow) ──────────────────────────────────────────────────────
+$cf-green-glow:  rgba(45, 139, 87, 0.45);
+$cf-blue-glow:   rgba(46, 134, 193, 0.45);
+$cf-lime-glow:   rgba(184, 212, 48, 0.38);
+$cf-violet-glow: rgba(123, 79, 160, 0.42);
+
+// ─── Radius ──────────────────────────────────────────────────────────────────
+$r-xs:   8rpx;
+$r-sm:   12rpx;
+$r-md:   16rpx;
+$r-lg:   20rpx;
+$r-xl:   28rpx;
+$r-2xl:  36rpx;
+$r-full: 9999rpx;
+
+// ─── Spacing ─────────────────────────────────────────────────────────────────
+$sp-xs:  8rpx;
+$sp-sm:  16rpx;
+$sp-md:  24rpx;
+$sp-lg:  32rpx;
+$sp-xl:  48rpx;
+
+// ─── Legacy token aliases ────────────────────────────────────────────────────
+$cf-amber-dim:   rgba(251, 191, 36, 0.14);
+$cf-blue-dim:    rgba(46, 134, 193, 0.16);
+$cf-red:         $cf-danger;
+$cf-accent:      $cf-lime;
+$cf-accent-dim:  rgba(184, 212, 48, 0.13);
+$cf-accent-glow: rgba(184, 212, 48, 0.30);
+$cf-card-2:      $cf-card-solid;
+$cf-text-dim:    $cf-text-3;
+$r-2xl:          $r-xl;
+$cf-green-success: $cf-success;
+
+// ─── Global Reset ────────────────────────────────────────────────────────────
+page {
+  background: $cf-bg;
+  color: $cf-white;
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+// ─── Utility classes ─────────────────────────────────────────────────────────
+.cf-page {
+  min-height: 100vh;
+  background: $cf-bg;
+}
+
+.cf-btn-primary {
+  background: linear-gradient(135deg, $cf-green 0%, $cf-blue 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 30rpx;
+  letter-spacing: 0.02em;
+  border-radius: $r-full;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 96rpx;
+  box-shadow: 0 8rpx 32rpx $cf-green-glow;
+  &:active { opacity: 0.88; }
+}
+
+.cf-glass-card {
+  background: $cf-glass-bg;
+  border-radius: $r-lg;
+  border: 0.5px solid $cf-glass-border;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.18);
+}
+
+.cf-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx 16rpx;
+  border-radius: $r-full;
+  font-size: 20rpx;
+  font-weight: 700;
+  &--green { background: rgba(45,139,87,0.18); color: $cf-success; border: 0.5px solid rgba(45,139,87,0.3); }
+  &--blue  { background: rgba(46,134,193,0.18); color: $cf-blue; border: 0.5px solid rgba(46,134,193,0.3); }
+  &--lime  { background: rgba(184,212,48,0.14); color: $cf-lime; border: 0.5px solid rgba(184,212,48,0.25); }
+  &--violet { background: rgba(123,79,160,0.16); color: #c084fc; border: 0.5px solid rgba(123,79,160,0.3); }
+  &--amber { background: rgba(251,191,36,0.14); color: $cf-amber; border: 0.5px solid rgba(251,191,36,0.25); }
+  &--grey  { background: rgba(255,255,255,0.07); color: $cf-text-2; border: 0.5px solid $cf-line; }
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.65; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.82); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes meshBreathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.80; }
+}

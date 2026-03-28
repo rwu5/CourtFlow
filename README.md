@@ -21,6 +21,9 @@
   - [Page Structure](#page-structure)
   - [Design System](#design-system)
   - [State Management](#state-management)
+- [Admin — courtflow-admin](#admin--courtflow-admin)
+  - [Admin Page Structure](#admin-page-structure)
+  - [Admin API Layer](#admin-api-layer)
 - [Getting Started](#getting-started)
 - [Roadmap](#roadmap)
 
@@ -48,7 +51,8 @@ CourtFlow targets tennis players and venue operators in China. It is positioned 
 ┌─────────────────────────────────────────────────────────┐
 │                     Client Layer                        │
 │   WeChat Mini Program  ·  H5 (browser)                  │
-│         courtflow-app  (uni-app / Vue 3)                 │
+│   courtflow-app (consumer)  ·  courtflow-admin (org)     │
+│              uni-app / Vue 3 / TypeScript                │
 └────────────────────────┬────────────────────────────────┘
                          │  HTTPS / REST
 ┌────────────────────────▼────────────────────────────────┐
@@ -113,21 +117,21 @@ CourtFlow targets tennis players and venue operators in China. It is positioned 
 CourtFlow/
 ├── courtflow-api/          # FastAPI backend
 │   ├── app/
-│   │   ├── api/v1/
-│   │   │   └── endpoints/  # auth · venues · bookings · orders · memberships
+│   │   ├── api/
+│   │   │   ├── v1/endpoints/  # auth · venues · bookings · orders · memberships
+│   │   │   └── admin/endpoints/ # organizations · venues · courts · pricing · memberships
 │   │   ├── core/           # config · database · security · deps
 │   │   ├── models/         # SQLAlchemy ORM models
 │   │   ├── services/       # booking · pricing · availability
 │   │   └── tasks/          # ARQ background jobs (hold expiry)
-│   ├── alembic/            # DB migrations
-│   │   └── versions/
-│   │       └── 0001_initial_schema.py
+│   ├── scripts/            # init_db.py (create tables + seed)
 │   ├── seeds/              # Dev data seeding
+│   ├── docker-compose.yml  # PostgreSQL 16 + Redis 7
 │   ├── tests/
 │   ├── DESIGN.md           # Full architecture & design document
 │   └── requirements.txt
 │
-├── courtflow-app/          # uni-app frontend
+├── courtflow-app/          # uni-app frontend (consumer-facing)
 │   └── src/
 │       ├── pages/          # Tab pages (home · courts · courses · my · login)
 │       ├── packages/       # Lazy-loaded sub-packages
@@ -144,6 +148,23 @@ CourtFlow/
 │       ├── types/          # TypeScript interfaces
 │       └── uni.scss        # Design system tokens
 │
+├── courtflow-admin/        # uni-app frontend (org & coach management)
+│   └── src/
+│       ├── pages/          # Tab pages (dashboard · venues · bookings · pricing · my · login)
+│       ├── packages/       # Sub-pages
+│       │   ├── org/        # Organization profile editor
+│       │   ├── venue/      # Venue CRUD · courts · court-photos · photos · facilities
+│       │   ├── booking/    # Booking list & detail with status actions
+│       │   ├── pricing/    # Pricing rule editor
+│       │   └── membership/ # Membership tier list & editor
+│       ├── components/ui/  # CfIcon · CfTabBar · CfCard · CfButton · CfFormItem
+│       │                   # CfModal · CfImageUpload · CfEmpty
+│       ├── stores/         # Pinia: auth · org
+│       ├── api/            # Admin API client (organizations · venues · courts
+│       │                   #   court-media · reservations · pricing · memberships)
+│       ├── types/          # TypeScript interfaces (full admin types)
+│       └── uni.scss        # Shared design system tokens
+│
 ├── UNI_APP_PRODUCT_PLAN.md # Product requirements & competitive analysis
 └── README.md
 ```
@@ -156,25 +177,42 @@ CourtFlow/
 
 ```
 app/
-├── api/v1/endpoints/
-│   ├── auth.py          # POST /auth/wechat · POST /auth/refresh · POST /auth/logout
-│   ├── venues.py        # GET /venues · GET /venues/{id} · GET /venues/{id}/availability
-│   ├── bookings.py      # POST /bookings/hold · POST /bookings/confirm · DELETE /bookings/{id}
-│   ├── orders.py        # POST /orders · GET /orders/{id} · POST /orders/{id}/pay
-│   ├── memberships.py   # GET /memberships/tiers · POST /memberships/join
-│   │                    # GET /memberships/my · POST /memberships/{id}/cancel
-│   └── users.py         # GET/PATCH /users/me
+├── api/
+│   ├── v1/endpoints/
+│   │   ├── auth.py          # POST /auth/wechat-login · POST /auth/phone-login · POST /auth/refresh
+│   │   ├── venues.py        # GET /venues · GET /venues/{id} · GET /venues/{id}/availability
+│   │   ├── bookings.py      # POST /bookings/hold · POST /bookings/confirm · DELETE /bookings/{id}
+│   │   ├── orders.py        # POST /orders · GET /orders/{id} · POST /orders/{id}/pay
+│   │   ├── memberships.py   # GET /memberships/tiers · POST /memberships/join
+│   │   │                    # GET /memberships/my · POST /memberships/{id}/cancel
+│   │   └── users.py         # GET/PUT /users/me
+│   │
+│   └── admin/endpoints/
+│       ├── organizations.py # GET/PUT /admin/organization · members · dashboard stats
+│       ├── venues.py        # CRUD /admin/venues + media + facilities
+│       ├── courts.py        # CRUD /admin/venues/{id}/courts + court-types + court-media
+│       ├── reservations.py  # List/detail/cancel/check-in/no-show/complete reservations
+│       ├── court_blocks.py  # CRUD /admin/venues/{id}/courts/{cid}/blocks
+│       ├── pricing.py       # CRUD /admin/pricing-rules
+│       └── memberships.py   # CRUD /admin/membership-tiers
+│
+├── core/
+│   ├── config.py        # Pydantic Settings (env-based)
+│   ├── database.py      # AsyncSession factory + Base
+│   ├── security.py      # JWT encode/decode · refresh token hashing
+│   └── deps.py          # get_current_user · get_current_user_optional · get_current_admin_user
 │
 ├── models/
 │   ├── organization.py  # Organization · MembershipTier · UserMembership · OrganizationMember
 │   ├── venue.py         # Venue · VenueMedia · VenueFacility
-│   ├── court.py         # Court · CourtType · CourtBlock · CourtLink
+│   ├── court.py         # Court · CourtType · CourtBlock · CourtLink · CourtMedia
 │   ├── reservation.py   # Reservation (hold → confirm → complete)
 │   ├── order.py         # Order · OrderItem
 │   ├── pricing.py       # PricingRule
 │   ├── discount.py      # Discount (coupon/promo/auto)
 │   ├── payment.py       # Payment · PaymentAccount
 │   ├── schedule.py      # OperatingSchedule (weekday defaults + date overrides)
+│   ├── audit.py         # AuditLog (immutable audit trail)
 │   └── user.py          # User · RefreshToken
 │
 └── services/
@@ -187,8 +225,9 @@ app/
 
 ```
 Organization
-└── Venue  (location, hours, slot_duration_minutes, timezone)
-    ├── Court  (surface, is_indoor, sort_order)
+└── Venue  (location, hours, timezone)
+    ├── Court  (surface, is_indoor, slot_duration_minutes, sort_order)
+    │   ├── CourtMedia   (photos, banners, thumbnails)
     │   ├── CourtBlock   (maintenance windows)
     │   └── CourtLink    (linked-court locking for doubles / training lanes)
     ├── CourtType        (named categories: 标准场, 学练场, 球道8米…)
@@ -265,17 +304,49 @@ When a user holds an active `UserMembership`, the pricing engine matches `Pricin
 
 Full OpenAPI docs available at `/docs` in non-production environments.
 
+**Consumer API** (`/api/v1/`)
+
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `POST` | `/api/v1/auth/wechat` | — | WeChat OAuth login → JWT |
-| `GET` | `/api/v1/venues` | optional | List venues (filter: city, is_partner) |
-| `GET` | `/api/v1/venues/{id}/availability` | optional | Court × slot grid for a date; includes `courts` metadata with `is_indoor` |
-| `POST` | `/api/v1/bookings/hold` | ✓ | Reserve a slot (5-min hold) |
-| `POST` | `/api/v1/bookings/confirm` | ✓ | Convert hold to confirmed after payment |
-| `GET` | `/api/v1/memberships/tiers` | — | List tiers (filter: venue_id, court_id) |
-| `POST` | `/api/v1/memberships/join` | ✓ | Purchase / join a tier |
-| `GET` | `/api/v1/memberships/my` | ✓ | Caller's active memberships |
-| `POST` | `/api/v1/memberships/{id}/cancel` | ✓ | Cancel a membership |
+| `POST` | `/auth/wechat-login` | — | WeChat OAuth login → JWT |
+| `POST` | `/auth/phone-login` | — | Phone + SMS code login → JWT (admin app) |
+| `POST` | `/auth/refresh` | — | Refresh token rotation |
+| `GET` | `/venues` | optional | List venues (filter: city, is_partner) |
+| `GET` | `/venues/{id}` | — | Venue detail with photos, facilities, court types |
+| `GET` | `/venues/{id}/availability` | optional | Court × slot grid for a date |
+| `POST` | `/bookings/hold` | ✓ | Reserve a slot (5-min hold) |
+| `POST` | `/bookings/confirm` | ✓ | Convert hold to confirmed after payment |
+| `GET` | `/memberships/tiers` | — | List tiers (filter: venue_id, court_id) |
+| `POST` | `/memberships/join` | ✓ | Purchase / join a tier |
+| `GET/PUT` | `/users/me` | ✓ | Get / update user profile |
+
+**Admin API** (`/api/v1/admin/`) — requires org owner/admin/staff/coach role
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET/PUT` | `/organization` | Get / update org profile |
+| `GET` | `/organization/members` | List org members with user info |
+| `GET` | `/dashboard/stats` | Aggregate stats (venues, courts, members, rules, tiers) |
+| `GET/POST` | `/venues` | List / create venues |
+| `GET/PUT/DELETE` | `/venues/{id}` | Venue detail / update / soft-delete |
+| `GET/POST/DELETE` | `/venues/{id}/media` | Venue photos management |
+| `GET/POST/DELETE` | `/venues/{id}/facilities` | Venue facilities management |
+| `GET/POST` | `/venues/{id}/courts` | List / create courts |
+| `GET/PUT/DELETE` | `/venues/{id}/courts/{cid}` | Court detail / update / soft-delete |
+| `GET/POST/DELETE` | `/venues/{id}/courts/{cid}/media` | Court photos management |
+| `GET/POST/DELETE` | `/venues/{id}/courts/{cid}/blocks` | Court maintenance windows |
+| `GET/POST` | `/venues/{id}/court-types` | List / create court types |
+| `PUT/DELETE` | `/venues/{id}/court-types/{tid}` | Update / delete court type |
+| `GET` | `/reservations` | List reservations (filter: venue_id, court_id, date, status, page) |
+| `GET` | `/reservations/{id}` | Reservation detail |
+| `POST` | `/reservations/{id}/cancel` | Cancel reservation (with optional reason) |
+| `POST` | `/reservations/{id}/check-in` | Check in user |
+| `POST` | `/reservations/{id}/no-show` | Mark no-show |
+| `POST` | `/reservations/{id}/complete` | Complete session |
+| `GET/POST` | `/pricing-rules` | List (filter: venue_id, court_type_id) / create |
+| `GET/PUT/DELETE` | `/pricing-rules/{id}` | Pricing rule detail / update / delete |
+| `GET/POST` | `/membership-tiers` | List / create membership tiers |
+| `GET/PUT/DELETE` | `/membership-tiers/{id}` | Tier detail / update / delete |
 
 ---
 
@@ -335,46 +406,168 @@ stores/booking.ts  — selected date, held slots, active order
 
 ---
 
+## Admin — courtflow-admin
+
+Built with **uni-app + Vue 3 + TypeScript** (same stack as courtflow-app), this is the management console for organizations and coaches to manage their venue operations.
+
+### Admin Page Structure
+
+```
+Tab pages:
+  /pages/index/index       Dashboard — org overview stats, quick actions
+  /pages/venues/index      Venue list — browse, create, manage venues
+  /pages/bookings/index    Bookings — view, filter (venue/status/date), manage all reservations
+  /pages/pricing/index     Pricing rules — list, create, edit rules
+  /pages/my/index          Profile — account settings, org info, logout
+  /pages/login/index       Phone + SMS verification login
+
+Sub-packages:
+  /packages/org/profile          Edit org name, logo, description
+  /packages/venue/edit           Create / edit venue (address, hours, contact)
+  /packages/venue/courts         Court list for a venue
+  /packages/venue/court-detail   Court detail (photos, pricing rules, blocks, recent bookings)
+  /packages/venue/court-edit     Create / edit court (name, surface, indoor/outdoor)
+  /packages/venue/court-photos   Manage court photos (add, delete, preview)
+  /packages/venue/photos         Manage venue photos
+  /packages/venue/facilities     Manage venue facilities (parking, showers, etc.)
+  /packages/booking/list         Booking list (filtered by venue/court, navigated from court detail)
+  /packages/booking/detail       Booking detail with actions (check-in, complete, cancel, no-show)
+  /packages/pricing/edit         Create / edit pricing rule (weekday, time, priority)
+  /packages/membership/list      Membership tier list
+  /packages/membership/edit      Create / edit tier (scope, price, duration, benefits)
+```
+
+### Admin API Layer
+
+All admin endpoints use the `/api/v1/admin/` prefix and require an authenticated user with org owner/admin/staff role.
+
+| Module | Endpoints |
+|---|---|
+| **Organization** | `GET/PUT /admin/organization` · `GET /admin/organization/members` · `GET /admin/dashboard/stats` |
+| **Venues** | `GET/POST /admin/venues` · `GET/PUT/DELETE /admin/venues/{id}` |
+| **Venue Media** | `GET/POST /admin/venues/{id}/media` · `DELETE /admin/venues/{id}/media/{mediaId}` |
+| **Venue Facilities** | `GET/POST /admin/venues/{id}/facilities` · `DELETE /admin/venues/{id}/facilities/{fid}` |
+| **Courts** | `GET/POST /admin/venues/{id}/courts` · `GET/PUT/DELETE /admin/venues/{id}/courts/{cid}` |
+| **Court Media** | `GET/POST /admin/venues/{id}/courts/{cid}/media` · `DELETE /admin/venues/{id}/courts/{cid}/media/{mid}` |
+| **Court Blocks** | `GET/POST /admin/venues/{id}/courts/{cid}/blocks` · `DELETE /admin/venues/{id}/courts/{cid}/blocks/{bid}` |
+| **Court Types** | `GET/POST /admin/venues/{id}/court-types` · `PUT/DELETE /admin/venues/{id}/court-types/{tid}` |
+| **Reservations** | `GET /admin/reservations` · `GET /admin/reservations/{id}` · `POST .../cancel` · `POST .../check-in` · `POST .../no-show` · `POST .../complete` |
+| **Pricing Rules** | `GET/POST /admin/pricing-rules` · `GET/PUT/DELETE /admin/pricing-rules/{id}` |
+| **Membership Tiers** | `GET/POST /admin/membership-tiers` · `GET/PUT/DELETE /admin/membership-tiers/{id}` |
+
+### Admin UI Components
+
+Extends the shared design system with admin-specific components:
+
+| Component | Purpose |
+|---|---|
+| `CfCard` | Glass card container with optional title + action slot |
+| `CfButton` | Primary / secondary / danger / ghost buttons with icon support |
+| `CfFormItem` | Label + input wrapper with required indicator, hint, and error |
+| `CfModal` | Confirmation / dialog modal with customizable footer |
+| `CfImageUpload` | Multi-image upload with preview and removal |
+| `CfEmpty` | Empty state placeholder with icon and text |
+
+---
+
 ## Getting Started
 
-### Backend
+### Prerequisites
+
+- **Python 3.12+**
+- **Node.js 18+** with npm
+- **Docker** (for PostgreSQL and Redis) — or install them natively
+
+### 1. Start Infrastructure
+
+```bash
+cd courtflow-api
+
+# Start PostgreSQL 16 + Redis 7 via Docker
+docker compose up -d
+```
+
+This creates:
+- PostgreSQL at `localhost:5432` (user: `courtflow`, password: `courtflow`, db: `courtflow`)
+- Redis at `localhost:6379`
+
+### 2. Start Backend
 
 ```bash
 cd courtflow-api
 
 # Create and activate virtual environment
-python -m venv .venv && source .venv/bin/activate
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Configure environment
-cp .env.example .env   # fill in DATABASE_URL, REDIS_URL, JWT_SECRET, etc.
-
-# Run migrations
-alembic upgrade head
-
-# Seed development data
-python seeds/seed_dev.py
+# Create tables and seed dev data (first time only)
+python -m scripts.init_db
 
 # Start API server
-uvicorn app.main:app --reload --port 8000
+python -m uvicorn app.main:app --reload --port 8000
 ```
 
-API docs available at `http://localhost:8000/docs`
+The `.env` file is pre-configured for local development. API docs at `http://localhost:8000/docs`.
 
-### Frontend
+The dev seed creates:
+- Organization "瑛赛网球" with one venue (3 courts, pricing rules)
+- Test user (phone: `19195233697`) as org owner — use this to log into the admin console
+
+#### Database Migration
+
+When new models are added (e.g. `CourtMedia`), run the migration script to create the new tables without re-seeding:
+
+```bash
+cd courtflow-api
+python -m scripts.migrate
+```
+
+| Script | What it does | When to use |
+|---|---|---|
+| `python -m scripts.init_db` | Creates all tables **+ seeds dev data** | First-time setup only |
+| `python -m scripts.migrate` | Creates only new/missing tables (existing data untouched) | After pulling new model changes |
+
+### 3. Start Admin Console
+
+```bash
+cd courtflow-admin
+
+npm install
+
+# H5 browser preview (port 5174, proxies /api/* to localhost:8000)
+npm run dev:h5
+```
+
+Open `http://localhost:5174` → log in with phone `19195233697` and any verification code (dev mode skips SMS).
+
+### 4. Start Consumer App (optional)
 
 ```bash
 cd courtflow-app
 
 npm install
 
-# WeChat Mini Program (requires WeChat DevTools)
-npm run dev:mp-weixin
-
 # H5 browser preview
 npm run dev:h5
+
+# WeChat Mini Program (requires WeChat DevTools)
+npm run dev:mp-weixin
+```
+
+### Dev Environment Overview
+
+```
+┌──────────────┐     ┌──────────────────┐     ┌─────────────┐
+│ courtflow-   │     │   courtflow-api  │     │  PostgreSQL  │
+│ admin :5174  │────▶│     :8000        │────▶│    :5432     │
+│ (Vite proxy) │     │   (FastAPI)      │     └─────────────┘
+└──────────────┘     │                  │     ┌─────────────┐
+┌──────────────┐     │                  │────▶│   Redis      │
+│ courtflow-   │────▶│                  │     │    :6379     │
+│ app   :5173  │     └──────────────────┘     └─────────────┘
+└──────────────┘
 ```
 
 ---
@@ -385,9 +578,12 @@ npm run dev:h5
 |---|---|
 | **Phase 1** ✅ | Court discovery, real-time booking grid, hold/confirm/cancel, dynamic pricing, discount system, WeChat auth, order flow |
 | **Phase 1.5** ✅ | Membership tiers (court/venue/org scoped), UserMembership join/cancel, indoor/outdoor differentiation, availability endpoint enriched with court metadata |
-| **Phase 2** 🔜 | Coaching profiles + lesson booking, course packages, training history, AI match analysis |
+| **Phase 1.6** ✅ | Admin console frontend (`courtflow-admin`) — org profile, venue/court CRUD, pricing rules, membership tier management |
+| **Phase 1.7** ✅ | Admin API backend (35 endpoints), phone login, admin auth dependency, per-court slot duration, frontend↔backend integration with dev proxy |
+| **Phase 1.8** ✅ | Court photos (CourtMedia model + CRUD API + admin UI), bookings tab (venue/status/date filters, pagination, reservation management) |
+| **Phase 2** 🔜 | S3 image upload, SMS verification (production), coaching profiles + lesson booking |
 | **Phase 3** 🔜 | Energy points gamification, social features (open matches, PK challenges), equipment marketplace |
-| **Phase 4** 🔜 | Operator dashboard (pricing admin, schedule management, member CRM), analytics |
+| **Phase 4** 🔜 | Analytics dashboard, member CRM, advanced scheduling, AI match analysis |
 
 ---
 

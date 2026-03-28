@@ -47,7 +47,6 @@ export interface VenueDetail {
   parking_info: string | null;
   open_time: string;
   close_time: string;
-  slot_duration_minutes: number;
   is_partner: boolean;
   photos: string[];
   facilities: VenueFacility[];

@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,15 +12,15 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 class UserProfileResponse(BaseModel):
-    id: str
+    id: uuid.UUID
     nickname: str | None
     phone: str | None
     avatar_url: str | None
     bio: str | None
     gender: str | None
-    player_level: str
-    dominant_hand: str | None
-    backhand_type: str | None
+    player_level: PlayerLevel
+    dominant_hand: DominantHand | None
+    backhand_type: BackhandType | None
 
     model_config = {"from_attributes": True}
 

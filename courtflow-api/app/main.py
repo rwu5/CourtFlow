@@ -6,6 +6,7 @@ from redis.asyncio import Redis
 
 from app.core.config import settings
 from app.api.v1 import router as v1_router
+from app.api.admin import router as admin_router
 
 
 @asynccontextmanager
@@ -35,6 +36,7 @@ app.add_middleware(
 )
 
 app.include_router(v1_router)
+app.include_router(admin_router)
 
 
 @app.get("/health")

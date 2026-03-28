@@ -1,0 +1,24 @@
+{
+  "name": "CourtFlow Admin",
+  "appid": "__UNI__CFADMIN",
+  "description": "CourtFlow organization & coach management console",
+  "versionName": "0.1.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "h5": {
+    "title": "CourtFlow Admin",
+    "router": {
+      "mode": "hash"
+    }
+  },
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false
+    },
+    "usingComponents": true
+  },
+  "uniStatistics": {
+    "enable": false
+  }
+}

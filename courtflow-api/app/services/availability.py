@@ -86,26 +86,17 @@ async def _compute_grid(
     venue = venue_result.scalar_one()
     tz = ZoneInfo(venue.timezone)
 
-    # Build list of slot start times (local) for the day
     open_h, open_m = map(int, venue.open_time.split(":"))
     close_h, close_m = map(int, venue.close_time.split(":"))
-    slot_duration = timedelta(minutes=venue.slot_duration_minutes)
 
-    current = datetime(
-        target_date.year, target_date.month, target_date.day, open_h, open_m, tzinfo=tz
+    close_local = datetime(
+        target_date.year, target_date.month, target_date.day,
+        close_h, close_m, tzinfo=tz,
     )
-    close = datetime(
-        target_date.year,
-        target_date.month,
-        target_date.day,
-        close_h,
-        close_m,
-        tzinfo=tz,
+    open_local = datetime(
+        target_date.year, target_date.month, target_date.day,
+        open_h, open_m, tzinfo=tz,
     )
-    slot_starts: list[datetime] = []
-    while current < close:
-        slot_starts.append(current)
-        current += slot_duration
 
     # Load courts
     courts_result = await db.execute(
@@ -158,8 +149,11 @@ async def _compute_grid(
 
     for court in courts:
         grid[str(court.id)] = {}
-        for slot_start_local in slot_starts:
-            slot_start_utc = slot_start_local.astimezone(timezone.utc)
+        # Each court has its own slot duration
+        slot_duration = timedelta(minutes=court.slot_duration_minutes)
+        current = open_local
+        while current < close_local:
+            slot_start_utc = current.astimezone(timezone.utc)
             slot_end_utc = slot_start_utc + slot_duration
             slot_key = slot_start_utc.isoformat()
 
@@ -195,6 +189,7 @@ async def _compute_grid(
                 amount_cents=amount_cents,
                 original_amount_cents=original_amount_cents,
             )
+            current += slot_duration
 
     return grid
 

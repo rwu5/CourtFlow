@@ -30,7 +30,6 @@ class Venue(Base):
     parking_info: Mapped[str | None] = mapped_column(Text, nullable=True)
     open_time: Mapped[str] = mapped_column(String(5), default="07:00")  # "07:00"
     close_time: Mapped[str] = mapped_column(String(5), default="22:00")  # "22:00"
-    slot_duration_minutes: Mapped[int] = mapped_column(Integer, default=60)  # 30 or 60
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow

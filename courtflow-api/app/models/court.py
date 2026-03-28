@@ -43,6 +43,7 @@ class Court(Base):
         String(32), nullable=True
     )  # hard, clay, grass, synthetic
     is_indoor: Mapped[bool] = mapped_column(Boolean, default=True)
+    slot_duration_minutes: Mapped[int] = mapped_column(Integer, default=60)  # 30 or 60
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -51,11 +52,37 @@ class Court(Base):
 
     venue: Mapped["Venue"] = relationship(back_populates="courts")  # noqa: F821
     court_type: Mapped["CourtType | None"] = relationship(back_populates="courts")
+    media: Mapped[list["CourtMedia"]] = relationship(
+        back_populates="court", order_by="CourtMedia.sort_order"
+    )
     blocks: Mapped[list["CourtBlock"]] = relationship(back_populates="court")
     # courts this court is linked to (for linked-court locking)
     links_from: Mapped[list["CourtLink"]] = relationship(
         foreign_keys="CourtLink.court_id", back_populates="court"
     )
+
+
+class CourtMedia(Base):
+    """Photos and media for a court"""
+
+    __tablename__ = "court_media"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    court_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("courts.id"), nullable=False
+    )
+    url: Mapped[str] = mapped_column(Text, nullable=False)
+    media_type: Mapped[str] = mapped_column(
+        String(20), default="photo"
+    )  # photo, banner, thumbnail
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow
+    )
+
+    court: Mapped["Court"] = relationship(back_populates="media")
 
 
 class CourtBlock(Base):

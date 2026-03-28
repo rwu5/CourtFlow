@@ -58,7 +58,6 @@ class VenueDetailResponse(BaseModel):
     parking_info: str | None
     open_time: str
     close_time: str
-    slot_duration_minutes: int
     is_partner: bool
     photos: list[str]
     facilities: list[FacilityOut]
@@ -71,6 +70,7 @@ class CourtMeta(BaseModel):
     is_indoor: bool
     surface: str | None
     court_type_id: str | None
+    slot_duration_minutes: int
     sort_order: int
 
 
@@ -158,7 +158,6 @@ async def get_venue(
         parking_info=venue.parking_info,
         open_time=venue.open_time,
         close_time=venue.close_time,
-        slot_duration_minutes=venue.slot_duration_minutes,
         is_partner=venue.organization.is_partner if venue.organization else False,
         photos=photos,
         facilities=[
@@ -215,6 +214,7 @@ async def get_availability(
                 is_indoor=c.is_indoor,
                 surface=c.surface,
                 court_type_id=str(c.court_type_id) if c.court_type_id else None,
+                slot_duration_minutes=c.slot_duration_minutes,
                 sort_order=c.sort_order,
             )
             for c in courts

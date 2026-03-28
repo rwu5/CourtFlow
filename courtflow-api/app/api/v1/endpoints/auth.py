@@ -50,6 +50,36 @@ class RefreshRequest(BaseModel):
     refresh_token: str
 
 
+class PhoneLoginRequest(BaseModel):
+    phone: str
+    code: str
+
+
+@router.post("/phone-login", response_model=TokenResponse)
+async def phone_login(body: PhoneLoginRequest, db: AsyncSession = Depends(get_db)):
+    """Phone + SMS code login for admin app.
+
+    In development mode, any code is accepted.
+    """
+    if settings.app_env != "development":
+        # TODO: integrate real SMS verification (e.g. Alibaba Cloud SMS)
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="SMS verification not configured",
+        )
+
+    result = await db.execute(select(User).where(User.phone == body.phone))
+    user = result.scalar_one_or_none()
+    is_new = user is None
+
+    if not user:
+        user = User(phone=body.phone, nickname=f"用户{body.phone[-4:]}")
+        db.add(user)
+        await db.flush()
+
+    return await _issue_tokens(db, user, is_new)
+
+
 @router.post("/wechat-login", response_model=TokenResponse)
 async def wechat_login(body: WechatLoginRequest, db: AsyncSession = Depends(get_db)):
     """Exchange WeChat login code for CourtFlow access token."""

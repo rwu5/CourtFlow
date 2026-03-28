@@ -15,6 +15,7 @@ from app.models.venue import Venue, VenueFacility
 from app.models.court import Court, CourtType
 from app.models.pricing import PricingRule
 from app.models.user import User
+from app.models.organization import OrganizationMember, OrgMemberRole
 
 
 async def seed():
@@ -48,9 +49,9 @@ async def seed():
             phone="021-12345678",
             open_time="07:00",
             close_time="22:00",
-            slot_duration_minutes=60,
         )
         db.add(venue)
+        await db.flush()
 
         # Facility tags
         for key, label in [
@@ -80,9 +81,12 @@ async def seed():
                     name=name,
                     surface="hard",
                     is_indoor=True,
+                    slot_duration_minutes=60,
                     sort_order=i,
                 )
             )
+
+        await db.flush()
 
         # Pricing rules (mirrors the screenshots: ¥88–¥148 depending on time/court)
         rules = [
@@ -146,7 +150,7 @@ async def seed():
         for r in rules:
             db.add(r)
 
-        # Test user
+        # Test user (admin)
         user = User(
             id=uuid.UUID("00000000-0000-0000-0000-000000000099"),
             wechat_openid="dev_openid_test",
@@ -154,6 +158,15 @@ async def seed():
             nickname="瑛赛网球用户3697",
         )
         db.add(user)
+
+        # Make test user an org owner
+        db.add(
+            OrganizationMember(
+                organization_id=org.id,
+                user_id=user.id,
+                role=OrgMemberRole.owner,
+            )
+        )
 
         await db.commit()
         print("✅ Seed complete")
