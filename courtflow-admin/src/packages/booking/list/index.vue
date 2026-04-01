@@ -70,8 +70,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { ref, computed } from 'vue'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import CfIcon from '@/components/ui/CfIcon.vue'
 import CfEmpty from '@/components/ui/CfEmpty.vue'
 import type { Reservation } from '@/types'
@@ -126,12 +126,11 @@ function formatSlot(start: string, end: string): string {
   return `${date} ${pad(s.getHours())}:${pad(s.getMinutes())} - ${pad(e.getHours())}:${pad(e.getMinutes())}`
 }
 
-onMounted(() => {
-  const pages = getCurrentPages()
-  const p = pages[pages.length - 1] as any
-  const opts = p?.$page?.options || p?.options || {}
-  preVenueId.value = opts.venue_id || ''
-  preCourtId.value = opts.court_id || ''
+onLoad((query) => {
+  preVenueId.value = query?.venue_id || ''
+  preCourtId.value = query?.court_id || ''
+  page.value = 1
+  load()
 })
 
 onShow(() => {

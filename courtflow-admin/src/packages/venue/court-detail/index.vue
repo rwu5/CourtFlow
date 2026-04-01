@@ -174,8 +174,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { ref, reactive } from 'vue'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import CfIcon from '@/components/ui/CfIcon.vue'
 import CfButton from '@/components/ui/CfButton.vue'
 import CfEmpty from '@/components/ui/CfEmpty.vue'
@@ -246,15 +246,7 @@ function bookingBadge(s: string): string {
   return 'cf-badge--grey'
 }
 
-onMounted(() => {
-  const pages = getCurrentPages()
-  const page = pages[pages.length - 1] as any
-  const opts = page?.$page?.options || page?.options || {}
-  venueId.value = opts.venueId || ''
-  courtId.value = opts.courtId || ''
-})
-
-onShow(async () => {
+async function loadData() {
   if (!venueId.value || !courtId.value) return
   try {
     const [c, r, b, bk, media] = await Promise.all([
@@ -272,6 +264,16 @@ onShow(async () => {
   } catch (e) {
     console.error('Failed to load court detail', e)
   }
+}
+
+onLoad((query) => {
+  venueId.value = query?.venueId || ''
+  courtId.value = query?.courtId || ''
+  loadData()
+})
+
+onShow(() => {
+  loadData()
 })
 
 function goSettings() {

@@ -28,8 +28,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { ref } from 'vue'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import CfIcon from '@/components/ui/CfIcon.vue'
 import CfEmpty from '@/components/ui/CfEmpty.vue'
 import type { CourtMedia } from '@/types'
@@ -40,17 +40,14 @@ const courtId = ref('')
 const mediaList = ref<CourtMedia[]>([])
 const loading = ref(false)
 
-onMounted(() => {
-  const pages = getCurrentPages()
-  const page = pages[pages.length - 1] as any
-  const opts = page?.$page?.options || page?.options || {}
-  venueId.value = opts.venueId || ''
-  courtId.value = opts.courtId || ''
+onLoad((query) => {
+  venueId.value = query?.venueId || ''
+  courtId.value = query?.courtId || ''
+  load()
 })
 
-onShow(async () => {
-  if (!venueId.value || !courtId.value) return
-  await load()
+onShow(() => {
+  load()
 })
 
 async function load() {

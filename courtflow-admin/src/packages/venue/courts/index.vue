@@ -32,8 +32,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { ref } from 'vue'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import CfIcon from '@/components/ui/CfIcon.vue'
 import CfButton from '@/components/ui/CfButton.vue'
 import CfEmpty from '@/components/ui/CfEmpty.vue'
@@ -48,16 +48,18 @@ const surfaceLabels: Record<string, string> = {
 }
 function surfaceLabel(s: string) { return surfaceLabels[s] ?? s }
 
-onMounted(() => {
-  const pages = getCurrentPages()
-  const page = pages[pages.length - 1] as any
-  venueId.value = page?.$page?.options?.venueId || page?.options?.venueId || ''
+async function loadData() {
+  if (!venueId.value) return
+  try { courts.value = await listCourts(venueId.value) } catch {}
+}
+
+onLoad((query) => {
+  venueId.value = query?.venueId || ''
+  loadData()
 })
 
-onShow(async () => {
-  if (venueId.value) {
-    try { courts.value = await listCourts(venueId.value) } catch {}
-  }
+onShow(() => {
+  loadData()
 })
 
 function goCreate() {

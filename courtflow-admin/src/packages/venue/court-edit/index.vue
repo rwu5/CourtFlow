@@ -146,7 +146,7 @@ async function handleDelete() {
         try {
           await deleteCourt(venueId.value, courtId.value)
           uni.showToast({ title: '已删除' })
-          uni.navigateBack()
+          uni.navigateBack({ delta: 2 })
         } catch (e: any) {
           uni.showToast({ title: e.detail ?? '删除失败', icon: 'none' })
         }
